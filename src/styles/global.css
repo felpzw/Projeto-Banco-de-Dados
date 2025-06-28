@@ -1,0 +1,869 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  background: #fbfbfb;
+}
+
+main {
+  max-width: 673px;
+  margin: 20px auto;
+}
+
+.header {
+  display: flex;
+  gap: 20px;
+}
+
+.header a {
+  color: black;
+  font-size: 18px;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 2;
+}
+
+.title-wrap {
+  height: 200px;
+}
+
+.title {
+  position: absolute;
+  font-size: 200px;
+  line-height: 200px;
+  z-index: 0;
+  letter-spacing: -2px;
+  margin-left: -8px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.title span {
+  opacity: 0;
+}
+
+.button {
+  width: 140px;
+  height: 30px;
+  border: solid 3px black;
+  border-radius: 10px;
+  color: black;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.button:hover {
+  color: white;
+  background: black;
+}
+
+.logo {
+  margin-left: 240px;
+  position: relative;
+  top: 25px;
+}
+
+.logo img {
+  position: absolute;
+}
+
+.rust {
+  animation: rotate 6s ease-in-out infinite;
+}
+
+.react {
+  top: 33px;
+  left: 28px;
+  animation: rotate 6s linear infinite reverse;
+}
+
+.subtitle {
+  font-size: 30px;
+  line-height: 30px;
+  letter-spacing: -1px;
+}
+
+.subtitle-wrap {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+/* NOVAS PARA O PROJETO */
+
+/* Resets básicos */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: 'Inter', sans-serif; /* Uma fonte moderna e legível */
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+}
+
+body {
+  overflow-x: hidden; /* Previne rolagem horizontal */
+}
+
+/* Variáveis CSS para cores e sombras */
+:root {
+  --primary-blue: #007bff;
+  --secondary-blue: #0056b3;
+  --light-blue: #e0f2fe;
+  --dark-text: #2c3e50;
+  --light-text: #ecf0f1;
+  --background-light: #f8f9fa;
+  --sidebar-bg: #2c3e50; /* Azul escuro quase grafite */
+  --sidebar-hover: #34495e;
+  --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --border-radius-large: 1.5rem; /* 24px */
+  --transition-speed: 0.3s ease;
+}
+
+/* Layout Geral do Dashboard */
+.dashboard-body {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-light);
+  color: var(--dark-text);
+}
+
+/* Estilos da Barra Lateral (Sidebar) */
+.sidebar {
+  width: 250px; /* Largura um pouco maior para um visual mais robusto */
+  background-color: var(--sidebar-bg);
+  color: var(--light-text);
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 1.5rem; /* Mais espaçamento */
+  box-shadow: var(--shadow-medium);
+  border-top-right-radius: var(--border-radius-large);
+  border-bottom-right-radius: var(--border-radius-large);
+  transition: width var(--transition-speed);
+}
+
+.sidebar-title {
+  font-size: 2rem; /* Título maior */
+  font-weight: 700;
+  margin-bottom: 2.5rem; /* Mais espaço abaixo do título */
+  letter-spacing: -0.05em; /* Ajuste para um visual mais moderno */
+  text-align: center;
+  line-height: 1.2;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Espaçamento entre os links */
+}
+
+.sidebar-link {
+  display: flex; /* Para centralizar o ícone e texto */
+  align-items: center;
+  gap: 0.75rem; /* Espaço entre ícone e texto */
+  padding: 0.8rem 1.25rem; /* Padding ajustado */
+  border-radius: 0.75rem; /* Bordas mais suaves */
+  color: var(--light-text);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  position: relative; /* Para o efeito de borda */
+  overflow: hidden; /* Para esconder o efeito de hover que sai do link */
+}
+
+.sidebar-link:hover {
+  background-color: var(--sidebar-hover);
+  transform: translateX(5px); /* Um pequeno movimento para a direita */
+}
+
+.sidebar-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px; /* Largura da "borda" */
+  background-color: var(--primary-blue);
+  transform: translateX(-100%);
+  transition: transform var(--transition-speed);
+}
+
+.sidebar-link:hover::before {
+  transform: translateX(0); /* Efeito de borda na esquerda ao passar o mouse */
+}
+
+/* Estilos do Conteúdo Principal */
+.main-content {
+  flex: 1;
+  padding: 2.5rem; /* Mais padding para o conteúdo principal */
+  background-color: var(--background-light);
+  overflow-y: auto; /* Permite rolagem se o conteúdo for grande */
+}
+
+/* Estilos para responsividade (opcional, mas recomendado) */
+@media (max-width: 768px) {
+  .dashboard-body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto; /* Altura automática para o modo mobile */
+    padding: 1.5rem 1rem;
+    border-radius: 0; /* Remove os rounded corners no mobile */
+    box-shadow: var(--shadow-light);
+  }
+
+  .sidebar-title {
+    text-align: left;
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+  }
+
+  .sidebar-nav {
+    flex-direction: row; /* Links lado a lado no mobile */
+    flex-wrap: wrap; /* Quebra de linha se necessário */
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .sidebar-link {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .sidebar-link::before {
+    display: none; /* Remove o efeito de borda no mobile para simplicidade */
+  }
+
+  .main-content {
+    padding: 1.5rem;
+  }
+}
+
+/* Adições para a IndexPage */
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh; /* Ajuste para o seu layout */
+  font-size: 2rem;
+  color: var(--primary-blue);
+}
+
+/* Container principal da página inicial */
+.homepage-container {
+  padding: 2.5rem; /* Ajuste o padding conforme necessário */
+  display: flex;
+  flex-direction: column;
+  gap: 3rem; /* Espaçamento entre as seções */
+  max-width: 1200px; /* Limita a largura para melhor leitura */
+  margin: 0 auto; /* Centraliza o conteúdo */
+}
+
+/* Seção de Hero (Boas-vindas) */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(135deg, var(--light-blue) 0%, #e8f5fe 100%); /* Gradiente suave */
+  padding: 3rem 2rem;
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-light);
+}
+
+.hero-title {
+  font-size: 3.5rem; /* Título maior */
+  font-weight: 800;
+  color: var(--dark-text);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.05em;
+}
+
+.hero-subtitle {
+  font-size: 1.8rem;
+  color: var(--primary-blue);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.hero-description {
+  font-size: 1.15rem;
+  color: #555;
+  max-width: 700px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.cta-button {
+  background-color: var(--primary-blue);
+  color: white;
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.cta-button:hover {
+  background-color: var(--secondary-blue);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Títulos de Seção */
+.section-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+/* Seção de Funcionalidades (Cards) */
+.features-section {
+  padding: 2rem 0;
+}
+
+.feature-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsivo com 3 colunas */
+  gap: 2rem;
+  justify-content: center;
+}
+
+.feature-card {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-light);
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-medium);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.feature-card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 0.75rem;
+}
+
+.feature-card-description {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Seção de Estatísticas */
+.stats-section {
+  padding: 2rem 0;
+}
+
+.stats-grid {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.stat-item {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-light);
+  min-width: 200px; /* Garante que os itens não fiquem muito pequenos */
+}
+
+.stat-number {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.stat-label {
+  font-size: 1.1rem;
+  color: #555;
+  font-weight: 500;
+}
+
+
+/* Responsividade para a IndexPage */
+@media (max-width: 768px) {
+  .homepage-container {
+    padding: 1.5rem;
+    gap: 2.5rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.4rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .cta-button {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .feature-cards-grid {
+    grid-template-columns: 1fr; /* Uma coluna no mobile */
+  }
+
+  .stat-item {
+    min-width: 150px;
+    padding: 1.2rem 1.5rem;
+  }
+
+  .stat-number {
+    font-size: 2.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .hero-description {
+    font-size: 0.9rem;
+  }
+}
+
+
+/* --- Estilos para a Página de Clientes (ClientsPage) --- */
+
+.clients-page-container {
+  padding: 2.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin: 0;
+}
+
+.add-button {
+  background-color: var(--primary-blue);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  box-shadow: 0 3px 8px rgba(0, 123, 255, 0.2);
+}
+
+.add-button:hover {
+  background-color: var(--secondary-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 123, 255, 0.3);
+}
+
+.filters-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+}
+
+.search-input,
+.filter-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  color: var(--dark-text);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+  flex: 1; /* Permite que ocupe espaço disponível */
+  min-width: 200px; /* Largura mínima para inputs */
+}
+
+.search-input:focus,
+.filter-select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  outline: none;
+}
+
+.client-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Cards responsivos */
+  gap: 1.5rem;
+}
+
+.no-results-message {
+  grid-column: 1 / -1; /* Ocupa todas as colunas */
+  text-align: center;
+  font-size: 1.2rem;
+  color: #777;
+  padding: 3rem 0;
+}
+
+/* --- Estilos para o Card de Cliente (ClientCard) --- */
+
+.client-card {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light);
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.client-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-medium);
+}
+
+.client-card-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-blue);
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--light-blue);
+  padding-bottom: 0.5rem;
+}
+
+.client-card-detail {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.client-card-detail strong {
+  color: var(--dark-text);
+  font-weight: 600;
+}
+
+.client-card-button {
+  background-color: var(--secondary-blue);
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  align-self: flex-end; /* Alinha o botão à direita inferior */
+  margin-top: 1rem;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.client-card-button:hover {
+  background-color: #003d80; /* Um azul mais escuro no hover */
+  transform: translateY(-2px);
+}
+
+/* --- Estilos para a Página de Novo Cliente (NewClientPage) --- */
+
+.new-client-page-container {
+  padding: 2.5rem;
+  max-width: 700px; /* Limita a largura do formulário */
+  margin: 0 auto;
+  background-color: white;
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+}
+
+.page-description {
+  font-size: 1.1rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.client-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dark-text);
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  padding: 0.8rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  color: var(--dark-text);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.form-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  outline: none;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.submit-button {
+  background-color: var(--primary-blue);
+  color: white;
+  padding: 0.8rem 1.8rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  box-shadow: 0 3px 8px rgba(0, 123, 255, 0.2);
+}
+
+.submit-button:hover {
+  background-color: var(--secondary-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 123, 255, 0.3);
+}
+
+.cancel-button {
+  background-color: #6c757d; /* Cinza para cancelar */
+  color: white;
+  padding: 0.8rem 1.8rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  box-shadow: 0 3px 8px rgba(108, 117, 125, 0.2);
+}
+
+.cancel-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(108, 117, 125, 0.3);
+}
+
+
+/* Responsividade para Clientes */
+@media (max-width: 768px) {
+  .clients-page-container {
+    padding: 1.5rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .add-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .filters-section {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .search-input,
+  .filter-select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .client-list-grid {
+    grid-template-columns: 1fr; /* Uma coluna no mobile */
+  }
+
+  .new-client-page-container {
+    padding: 1.5rem;
+  }
+
+  .page-description {
+    font-size: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .submit-button, .cancel-button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+
+/* --- Estilos para a Página de Edição de Cliente (EditClientPage) --- */
+
+/* Add these styles to your global.css */
+
+.client-card-actions {
+  display: flex;
+  gap: 0.5rem; /* Space between buttons */
+  margin-top: 1rem;
+  justify-content: flex-end; /* Align buttons to the right */
+  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+.client-card-button.edit-button {
+  background-color: #ffc107; /* Bootstrap's yellow for warning/edit */
+  color: #333;
+  /* Inherits other button styles from .client-card-button */
+}
+
+.client-card-button.edit-button:hover {
+  background-color: #e0a800; /* Darker yellow on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(255, 193, 7, 0.3);
+}
+
+.client-card-button.delete-button {
+  background-color: #dc3545; /* Bootstrap's red for danger/delete */
+  color: white;
+  /* Inherits other button styles from .client-card-button */
+}
+
+.client-card-button.delete-button:hover {
+  background-color: #c82333; /* Darker red on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Ensure the original client-card-button also has necessary base styles */
+.client-card-button {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* For responsiveness */
+@media (max-width: 480px) {
+  .client-card-actions {
+    flex-direction: column;
+    align-items: stretch; /* Make buttons take full width */
+  }
+  .client-card-button {
+    width: 100%; /* Full width buttons on small screens */
+  }
+}
