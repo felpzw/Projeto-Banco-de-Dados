@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { JSX } from 'react';
 import { Link, useRouter } from 'tuono';
 import type { TuonoRouteProps } from 'tuono';
-import DocumentCard, { Document } from '../../components/DocumentCard'; // Importa o componente e a interface
+import DocumentCard, { Document } from '../../components/DocumentCard';
 
 interface DocumentsPageProps {
   documents: Document[];
@@ -16,11 +16,9 @@ export default function DocumentsPage({
   const [documents, setDocuments] = useState<Document[]>((data?.documents) ?? []);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Use useEffect to fetch data on component mount and when data prop changes
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        // Fetch from the new /api/documentos endpoint
         const response = await fetch('/api/documentos');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -29,17 +27,15 @@ export default function DocumentsPage({
         setDocuments(fetchedDocuments);
       } catch (error) {
         console.error('Error fetching documents:', error);
-        // Handle error state, e.g., show an error message to the user
       }
     };
 
-    // Only fetch if data is not already provided by Tuono's hydration
     if (!data?.documents) {
       fetchDocuments();
     } else {
       setDocuments(data.documents);
     }
-  }, [data]); // Depend on 'data' prop to re-fetch if initial data changes
+  }, [data]);
 
   const handleViewDetails = (documentId: string) => {
     router.push(`/documentos/${documentId}`);
@@ -87,13 +83,12 @@ export default function DocumentsPage({
     return documents.filter(doc =>
       doc.nome_arquivo.toLowerCase().includes(lowerCaseSearchTerm) ||
       doc.descricao.toLowerCase().includes(lowerCaseSearchTerm) ||
-      doc.tipo.toLowerCase().includes(lowerCaseSearchTerm) ||
       doc.id_caso.toLowerCase().includes(lowerCaseSearchTerm)
     );
   }, [documents, searchTerm]);
 
   return (
-    <div className="clients-page-container"> {/* Reutilizando o container de clientes */}
+    <div className="clients-page-container">
       <div className="page-header">
         <h1 className="page-title">Gestão de Documentos</h1>
         <Link href="/documentos/new" className="add-button">
@@ -104,14 +99,14 @@ export default function DocumentsPage({
       <div className="filters-section">
         <input
           type="text"
-          placeholder="Buscar por nome, descrição, tipo ou ID do caso..."
+          placeholder="Buscar por nome, descrição ou ID do caso..."
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <div className="client-list-grid"> {/* Reutilizando o grid de clientes */}
+      <div className="client-list-grid">
         {filteredDocuments.length > 0 ? (
           filteredDocuments.map(document => (
             <DocumentCard

@@ -1,5 +1,5 @@
 use tuono_lib::axum::response::{IntoResponse, Json};
-use tuono_lib::axum::http::{StatusCode};
+use tuono_lib::axum::http::StatusCode;
 use tuono_lib::Request;
 use serde_json::{json, Value};
 
@@ -20,7 +20,6 @@ async fn clean(_req: Request) -> impl IntoResponse {
         }
     };
 
-    // Consulta todas as tabelas no schema `public`
     let query_tables = "
         SELECT tablename FROM pg_tables
         WHERE schemaname = 'public';
@@ -154,8 +153,8 @@ async fn init(_req: Request) -> impl IntoResponse {
             id_caso INTEGER NOT NULL REFERENCES Caso(id_caso),
             descricao TEXT,
             data_envio DATE,
-            tipo VARCHAR(100),
-            nome_arquivo VARCHAR(255)
+            arquivo BYTEA, -- Conteúdo binário do arquivo (PDF, imagem, etc.)
+            nome_arquivo VARCHAR(255) -- Nome original do arquivo (com extensão)
         );
 
         CREATE TABLE Tarefa (
@@ -169,7 +168,6 @@ async fn init(_req: Request) -> impl IntoResponse {
         return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()})));
     }
 
-    // Return a success message
     (StatusCode::OK, Json(json!({"message": "Database initialized successfully"})))
 }
 
@@ -179,7 +177,6 @@ async fn populate_db(_req: Request) -> impl IntoResponse {
     let mut client = match connect_db().await {
         Ok(client) => client,
         Err(e) => {
-            eprintln!("Failed to connect to database: {}", e);
             return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Database connection error: {}", e)})));
         }
     };
@@ -187,7 +184,6 @@ async fn populate_db(_req: Request) -> impl IntoResponse {
     let transaction = match client.transaction().await {
         Ok(tx) => tx,
         Err(e) => {
-            eprintln!("Failed to start transaction: {}", e);
             return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to start transaction: {}", e)})));
         }
     };
@@ -349,7 +345,7 @@ async fn populate_db(_req: Request) -> impl IntoResponse {
     for (id_audiencia, id_caso, data_audiencia, horario, descricao, endereco, tipo_audiencia) in audiencia_data.iter() {
         if let Err(e) = transaction.execute(
             "INSERT INTO Audiencia (id_audiencia, id_caso, data_audiencia, horario, descricao, endereco, tipo_audiencia) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id_audiencia) DO NOTHING;",
-            &[id_audiencia, id_caso, &data_audiencia, horario, descricao, endereco, tipo_audiencia], // Changed &data_audiencia to data_audiencia (already a Timestamp)
+            &[id_audiencia, id_caso, &data_audiencia, horario, descricao, endereco, tipo_audiencia],
         ).await {
             let _ = transaction.rollback().await;
             return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to insert Audiencia: {}", e)})));
@@ -372,16 +368,16 @@ async fn populate_db(_req: Request) -> impl IntoResponse {
         }
     }
 
-    // 12. Documento
+    // 12. Documento (Agora com nome_arquivo e arquivo BYTEA, sem tipo)
     let documento_data = vec![
-        (1, 1001, "Comprovante de residência do cliente", Some(NaiveDate::from_ymd_opt(2023, 3, 8).unwrap()), "PDF", "comprovante_joao.pdf"),
-        (2, 1001, "Procuração assinada", Some(NaiveDate::from_ymd_opt(2023, 3, 9).unwrap()), "PDF", "procuracao_joao.pdf"),
-        (3, 1002, "Documentos pessoais da cliente", Some(NaiveDate::from_ymd_opt(2022, 1, 10).unwrap()), "JPG", "docs_maria.zip"),
+        (1, 1001, "Comprovante de residência do cliente", Some(NaiveDate::from_ymd_opt(2023, 3, 8).unwrap()), "comprovante_joao.pdf"),
+        (2, 1001, "Procuração assinada", Some(NaiveDate::from_ymd_opt(2023, 3, 9).unwrap()), "procuracao_joao.pdf"),
+        (3, 1002, "Documentos pessoais da cliente", Some(NaiveDate::from_ymd_opt(2022, 1, 10).unwrap()), "docs_maria.zip"),
     ];
-    for (id_documento, id_caso, descricao, data_envio, tipo, nome_arquivo) in documento_data.iter() {
+    for (id_documento, id_caso, descricao, data_envio, nome_arquivo) in documento_data.iter() {
         if let Err(e) = transaction.execute(
-            "INSERT INTO Documento (id_documento, id_caso, descricao, data_envio, tipo, nome_arquivo) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id_documento) DO NOTHING;",
-            &[id_documento, id_caso, descricao, data_envio, tipo, nome_arquivo],
+            "INSERT INTO Documento (id_documento, id_caso, descricao, data_envio, nome_arquivo, arquivo) VALUES ($1, $2, $3, $4, $5, NULL) ON CONFLICT (id_documento) DO NOTHING;",
+            &[id_documento, id_caso, descricao, data_envio, nome_arquivo],
         ).await {
             let _ = transaction.rollback().await;
             return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to insert Documento: {}", e)})));
@@ -406,13 +402,16 @@ async fn populate_db(_req: Request) -> impl IntoResponse {
 
     match transaction.commit().await {
         Ok(_) => {
-            // --- Atualizar a sequência do SERIAL após as inserções manuais ---
             let max_cliente_id_query = "SELECT setval('cliente_id_cliente_seq', (SELECT MAX(id_cliente) FROM Cliente), TRUE);";
             if let Err(e) = client.execute(max_cliente_id_query, &[]).await {
                 eprintln!("Failed to update cliente_id_cliente_seq: {}", e);
                 return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to update sequence: {}", e)})));
             }
-
+            let max_documento_id_query = "SELECT setval('documento_id_documento_seq', (SELECT MAX(id_documento) FROM Documento), TRUE);";
+            if let Err(e) = client.execute(max_documento_id_query, &[]).await {
+                eprintln!("Failed to update documento_id_documento_seq: {}", e);
+                return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to update documento sequence: {}", e)})));
+            }
             (StatusCode::CREATED, Json(json!({"message": "Database populated with fictitious data successfully."})))
         },
         Err(e) => {

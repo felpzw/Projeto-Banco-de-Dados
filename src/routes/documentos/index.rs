@@ -5,19 +5,19 @@ use tuono_lib::axum::http;
 use tuono_app::connect_db;
 use chrono::NaiveDate;
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Documents {
-    documents: Vec<Documento>,
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Documento {
     id_documento: i32,
     id_caso: i32,
     descricao: String,
     data_envio: Option<String>, // Pode ser nulo no DB
-    tipo: String,
-    nome_arquivo: String,
+    nome_arquivo: String, // O nome original do arquivo
+    // 'tipo' removido daqui
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct Documentos {
+    documents: Vec<Documento>
 }
 
 #[allow(unused_variables)]
@@ -33,7 +33,7 @@ async fn get_documents(req: Request) -> Response {
 
     let rows = match client_db
         .query(
-            "SELECT id_documento, id_caso, descricao, data_envio, tipo, nome_arquivo FROM Documento ORDER BY data_envio DESC",
+            "SELECT id_documento, id_caso, descricao, data_envio, nome_arquivo FROM Documento ORDER BY data_envio DESC", // 'tipo' removido da SELECT
             &[],
         )
         .await
@@ -53,12 +53,11 @@ async fn get_documents(req: Request) -> Response {
             id_caso: row.get("id_caso"),
             descricao: row.get("descricao"),
             data_envio: data_envio_pg.map(|d| d.to_string()),
-            tipo: row.get("tipo"),
             nome_arquivo: row.get("nome_arquivo"),
         });
     }
 
-    Response::Props(Props::new(Documents {
+    Response::Props(Props::new(Documentos {
         documents: documents_list,
     }))
 }

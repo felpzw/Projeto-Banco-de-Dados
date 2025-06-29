@@ -5,8 +5,7 @@ export interface Document {
   id_caso: string; // ID do caso ao qual o documento pertence
   descricao: string;
   data_envio: string; // ISO 8601 string
-  tipo: string;
-  nome_arquivo: string;
+  nome_arquivo: string; // Nome original do arquivo (com extensão)
 }
 
 interface DocumentCardProps {
@@ -36,7 +35,7 @@ export default function DocumentCard({ document, onViewDetails, onEdit, onDelete
   };
 
   return (
-    <div className="client-card"> {/* Reutilizando o estilo do card de cliente */}
+    <div className="client-card">
       <h3 className="client-card-name">Documento: {document.nome_arquivo}</h3>
       <p className="client-card-detail">
         <strong>ID Doc:</strong> {document.id_documento}
@@ -46,9 +45,6 @@ export default function DocumentCard({ document, onViewDetails, onEdit, onDelete
       </p>
       <p className="client-card-detail">
         <strong>Descrição:</strong> {document.descricao}
-      </p>
-      <p className="client-card-detail">
-        <strong>Tipo:</strong> {document.tipo}
       </p>
       <p className="client-card-detail">
         <strong>Data Envio:</strong> {document.data_envio ? new Date(document.data_envio).toLocaleDateString('pt-BR') : 'Não informado'}
