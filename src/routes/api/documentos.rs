@@ -9,28 +9,26 @@ use mime_guess;
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 
-// --- Structs para Payload JSON (Frontend -> Backend) ---
 #[derive(Debug, Serialize, Deserialize)]
 struct DocumentPayload {
     id_caso: i32,
     descricao: String,
-    data_envio: String, // String no formato AAAA-MM-DD
+    data_envio: String, // AAAA-MM-DD
     nome_arquivo: String,
-    arquivo_base64: String, // Conteúdo Base64 do arquivo
+    arquivo_base64: String, // Base64
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct DocumentUpdatePayload {
-    id: i32, // ID do documento a ser atualizado
+    id: i32, 
     id_caso: i32,
     descricao: String,
-    data_envio: String, // String no formato AAAA-MM-DD
+    data_envio: String, 
     nome_arquivo: String,
-    arquivo_base64: Option<String>, // Conteúdo Base64 do arquivo (opcional para atualização)
+    arquivo_base64: Option<String>, 
 }
 
 
-// GET /api/documentos (Listar documentos ou buscar específico, com opção de download)
 #[tuono_lib::api(GET)]
 async fn documento(_req: Request) -> impl IntoResponse {
     let query_string = _req.uri.query().unwrap_or("");
@@ -90,7 +88,6 @@ async fn documento(_req: Request) -> impl IntoResponse {
         }
     }
 
-    // Lógica para listar todos os documentos ou buscar metadados de um específico
     let mut is_specific_id_requested = false; // Flag para rastrear se um ID foi solicitado
     let rows_result = if let Ok(values) = query_values_result {
         if let Some(id_str) = values.get("id").cloned() {
@@ -145,7 +142,7 @@ async fn documento(_req: Request) -> impl IntoResponse {
     };
 
 
-    let documents: Vec<Value> = rows_result.into_iter().map(|row| { // Usar rows_result aqui
+    let documents: Vec<Value> = rows_result.into_iter().map(|row| { 
         let data_envio: Option<NaiveDate> = row.get("data_envio");
         json!({
             "id_documento": row.get::<_, i32>("id_documento"),
@@ -156,22 +153,18 @@ async fn documento(_req: Request) -> impl IntoResponse {
         })
     }).collect();
 
-    // Se um ID específico foi solicitado E (&&) não há documentos encontrados
     if is_specific_id_requested {
         if documents.is_empty() {
             return (StatusCode::NOT_FOUND, Json(json!({"error": "Documento não encontrado."}))).into_response();
         } else {
-            // Se um ID específico foi solicitado E documentos foram encontrados,
             // retorne o primeiro (e único) objeto diretamente, não um array.
             return (StatusCode::OK, Json(documents[0].clone())).into_response();
         }
     }
 
-    // Caso contrário, retorne a lista completa de documentos
     Json(json!(documents)).into_response()
 }
 
-// POST /api/documentos (Adicionar novo documento com Base64 no corpo JSON)
 #[tuono_lib::api(POST)]
 async fn create_documento(_req: Request) -> impl IntoResponse {
     let payload: DocumentPayload = match _req.body() {
@@ -229,7 +222,6 @@ async fn create_documento(_req: Request) -> impl IntoResponse {
     (StatusCode::CREATED, Json(json!({"message": "Documento adicionado com sucesso", "id_documento": id_documento})))
 }
 
-// PUT /api/documentos (Atualizar documento com Base64 no corpo JSON, ou não enviar arquivo para manter o existente)
 #[tuono_lib::api(PUT)]
 async fn update_documento(_req: Request) -> impl IntoResponse {
     let payload: DocumentUpdatePayload = match _req.body() {
@@ -315,7 +307,6 @@ async fn update_documento(_req: Request) -> impl IntoResponse {
     }
 }
 
-// DELETE /api/documentos (Excluir documento)
 #[tuono_lib::api(DELETE)]
 async fn delete_documento(_req: Request) -> impl IntoResponse {
     let query_string = _req.uri.query().unwrap_or("");

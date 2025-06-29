@@ -31,9 +31,9 @@ pub async fn advogado(_req: Request) -> Json<Value> {
 
     let lawyers_list: Vec<Value> = rows.into_iter().map(|row| {
         json!({
-            "id": row.get::<_, i32>("id_advogado"), // Usar "id" para consistência no frontend
+            "id": row.get::<_, i32>("id_advogado"),
             "nome": row.get::<_, String>("nome"),
-            "oab": row.get::<_, String>("oab"), // Incluir OAB se for para exibir no dropdown
+            "oab": row.get::<_, String>("oab"),
         })
     }).collect();
 

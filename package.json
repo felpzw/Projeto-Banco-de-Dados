@@ -5,6 +5,7 @@
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^3.0.2",
     "tuono": "0.19.7"
   },
   "devDependencies": {

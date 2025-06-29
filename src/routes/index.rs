@@ -32,7 +32,6 @@ async fn get_all_pokemons(_req: Request, fetch: Client) -> Response {
     let db_check = {
         match tokio_postgres::connect(DATABASE_URL, NoTls).await {
             Ok((client, connection)) => {
-                // ESSENCIAL: Spawnar a conexão em uma tarefa separada
                 tokio::spawn(async move {
                     if let Err(e) = connection.await {
                         eprintln!("Erro na conexão do banco de dados (background task): {}", e);

@@ -1,52 +1,70 @@
-use serde::{Deserialize, Serialize};
 use tuono_lib::axum::response::{IntoResponse, Json};
 use tuono_lib::axum::http::StatusCode;
 use tuono_lib::Request;
-use tuono_lib::tokio;
-use serde_json::{json, Value};
-use base64::{Engine as _, engine::general_purpose};
+use tuono_app::connect_db; // Importa connect_db do tuono_app
 
-#[derive(Deserialize)]
-struct PdfUpload {
-    filename: String,
-    content_base64: String, // PDF em Base64
-    metadata: Option<Value> // Campos adicionais
+use serde_json::{json, Value};
+use serde::{Deserialize, Serialize};
+use pdf_extract::{extract_text_from_mem, OutputError}; 
+
+#[derive(Debug, Deserialize)]
+struct DocumentIdPayload {
+    id_documento: i32,
 }
 
 #[tuono_lib::api(POST)]
-async fn upload_pdf(req: Request) -> impl IntoResponse {
-    let body: PdfUpload = match req.body() {
-        Ok(body) => body,
+async fn post_test(_req: Request) -> impl IntoResponse {
+
+    let payload: DocumentIdPayload = match _req.body() {
+        Ok(p) => p,
         Err(e) => {
-            return (StatusCode::BAD_REQUEST, 
-                Json(json!({"error": "Invalid request", "details": format!("{:?}", e)}))) // Alterado aqui
+            eprintln!("Failed to read/parse JSON body from Request: {:?}", e);
+            return (StatusCode::BAD_REQUEST, Json(json!({"error": format!("Invalid request body or JSON parsing error: {:?}", e)})));
         }
     };
 
-    // Decodifica o Base64
-    let pdf_bytes = match general_purpose::STANDARD.decode(&body.content_base64) {
-        Ok(bytes) => bytes,
+    let id_documento_to_extract = payload.id_documento;
+
+    let client_db = match connect_db().await {
+        Ok(client) => client,
         Err(e) => {
-            return (StatusCode::BAD_REQUEST,
-                Json(json!({"error": "Invalid Base64", "details": e.to_string()})))
+            eprintln!("Failed to connect to database: {}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Database connection error: {}", e)})));
         }
     };
 
-    // Valida se é um PDF (opcional)
-    if !pdf_bytes.starts_with(b"%PDF-") {
-        return (StatusCode::BAD_REQUEST,
-            Json(json!({"error": "Invalid PDF file"})));
-    }
+    let row = match client_db
+        .query_opt("SELECT arquivo FROM Documento WHERE id_documento = $1;", &[&id_documento_to_extract])
+        .await
+    {
+        Ok(row) => row,
+        Err(e) => {
+            eprintln!("Failed to fetch document from DB: {}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to fetch document content from DB: {}", e)})));
+        }
+    };
 
-    // Salva o arquivo (exemplo)
-    if let Err(e) = tokio::fs::write(&body.filename, &pdf_bytes).await {
-        return (StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": "Failed to save file", "details": e.to_string()})));
-    }
+    let document_bytes: Vec<u8> = if let Some(r) = row {
+        match r.get("arquivo") {
+            Some(bytes) => bytes,
+            None => return (StatusCode::NOT_FOUND, Json(json!({"error": "Conteúdo do arquivo não encontrado no documento especificado."}))),
+        }
+    } else {
+        return (StatusCode::NOT_FOUND, Json(json!({"error": "Documento não encontrado com o ID fornecido."})));
+    };
+
+    
+    let extracted_text = match extract_text_from_mem(&document_bytes) {
+        Ok(text) => text,
+        Err(e) => {
+            eprintln!("Failed to extract text from PDF: {:?}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to extract text from PDF: {:?}", e)})));
+        }
+    };
 
     (StatusCode::OK, Json(json!({
-        "message": "PDF received successfully",
-        "filename": body.filename,
-        "size_bytes": pdf_bytes.len()
+        "message": "Texto extraído com sucesso",
+        "document_id": id_documento_to_extract,
+        "extracted_text": extracted_text
     })))
 }

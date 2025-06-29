@@ -142,22 +142,18 @@ async fn caso(_req: Request) -> impl IntoResponse {
         })
     }).collect();
 
-    // Se um ID específico foi solicitado E (&&) não há casos encontrados
     if is_specific_id_requested {
         if cases.is_empty() {
             return (StatusCode::NOT_FOUND, Json(json!({"error": "Caso não encontrado."}))).into_response();
         } else {
-            // Se um ID específico foi solicitado E casos foram encontrados,
-            // retorne o primeiro (e único) objeto diretamente, não um array.
             return (StatusCode::OK, Json(cases[0].clone())).into_response();
         }
     }
-
-    // Caso contrário, retorne a lista completa de casos
     Json(json!(cases)).into_response()
 }
 
-// POST /api/casos (Criar novo caso)
+
+
 #[tuono_lib::api(POST)]
 async fn create_caso(_req: Request) -> impl IntoResponse {
     let payload: CasoPayload = match _req.body() {
@@ -232,7 +228,6 @@ async fn create_caso(_req: Request) -> impl IntoResponse {
 }
 
 
-// PUT /api/casos (Atualizar caso)
 #[tuono_lib::api(PUT)]
 async fn update_caso(_req: Request) -> impl IntoResponse {
     let payload: CasoUpdatePayload = match _req.body() {

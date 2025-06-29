@@ -9,7 +9,7 @@ use chrono::NaiveDate;
 #[tuono_lib::api(GET)]  
 async fn cliente(_req: Request) -> Json<Value> { 
     let query_string = _req.uri.query().unwrap_or(""); 
-    let query_values_result = tuono_app::extract_query_values(query_string); // Obtenha o resultado da análise da query
+    let query_values_result = tuono_app::extract_query_values(query_string); 
 
     let client_db = match tuono_app::connect_db().await { 
         Ok(client) => client,
@@ -21,9 +21,8 @@ async fn cliente(_req: Request) -> Json<Value> {
         }
     };
 
-    // Se houver um parâmetro 'id' na query string, buscar um cliente específico
-    if let Ok(query_values) = &query_values_result { // `query_values` é uma referência temporária a HashMap<String, String>
-        if let Some(id_str) = query_values.get("id") { // Verifica a presença de um ID específico
+    if let Ok(query_values) = &query_values_result { 
+        if let Some(id_str) = query_values.get("id") { 
             let id = match id_str.parse::<i32>() { 
                 Ok(id) => id,
                 Err(_) => { 
@@ -63,7 +62,7 @@ async fn cliente(_req: Request) -> Json<Value> {
             }
 
             let row = &rows[0]; 
-            return Json( // Retorna imediatamente para o cliente específico
+            return Json( 
                 json!({ 
                     "id_cliente": row.get::<_, i32>("id_cliente"), 
                     "nome": row.get::<_, String>("nome"), 
@@ -81,8 +80,6 @@ async fn cliente(_req: Request) -> Json<Value> {
         }
     }
 
-    // Se NÃO houver um parâmetro 'id' (ou se houver um erro na extração mas a query_string não está vazia),
-    // ou se a query_string estiver vazia, retorna a lista completa de clientes para dropdowns
     let rows = match client_db
         .query(
             "SELECT id_cliente, nome FROM Cliente ORDER BY nome ASC;", 
@@ -203,7 +200,7 @@ async fn create_client(_req: Request) -> impl IntoResponse {
     (StatusCode::CREATED, Json(json!({"message": "Client created successfully", "id_cliente": client_id}))) 
 }
 
-#[tuono_lib::api(PUT)] // New PUT endpoint for updating clients
+#[tuono_lib::api(PUT)] 
 async fn update_client(_req: Request) -> impl IntoResponse {
     let query_string = _req.uri.query().unwrap_or(""); 
     println!("Query Recebida para PUT: {}", query_string);
@@ -260,7 +257,6 @@ async fn update_client(_req: Request) -> impl IntoResponse {
         }
     };
 
-    // 1. Update Cliente table
     let update_client_query = "UPDATE Cliente SET nome = $1, email = $2, telefone = $3, endereco = $4 WHERE id_cliente = $5;";
     if let Err(e) = transaction.execute(update_client_query, &[&nome, &email, &telefone, &endereco, &id]).await {
         eprintln!("Failed to update Cliente: {}", e);
@@ -268,9 +264,7 @@ async fn update_client(_req: Request) -> impl IntoResponse {
         return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": format!("Failed to update client details: {}", e)})));
     }
 
-    // 2. Handle type-specific table updates/deletions/insertions
     if original_tipo_cliente == "fisica" && tipo_cliente == "juridica" {
-        // Change from Fisica to Juridica: Delete from Fisica, Insert into Juridica
         if let Err(e) = transaction.execute("DELETE FROM Pessoa_Fisica WHERE id_cliente = $1;", &[&id]).await {
             eprintln!("Failed to delete from Pessoa_Fisica during type change: {}", e);
             let _ = transaction.rollback().await;
@@ -287,7 +281,6 @@ async fn update_client(_req: Request) -> impl IntoResponse {
             return (StatusCode::BAD_REQUEST, Json(json!({"error": "CNPJ is required when changing to Pessoa Jurídica."})));
         }
     } else if original_tipo_cliente == "juridica" && tipo_cliente == "fisica" {
-        // Change from Juridica to Fisica: Delete from Juridica, Insert into Fisica
         if let Err(e) = transaction.execute("DELETE FROM Pessoa_Juridica WHERE id_cliente = $1;", &[&id]).await {
             eprintln!("Failed to delete from Pessoa_Juridica during type change: {}", e);
             let _ = transaction.rollback().await;
@@ -304,7 +297,6 @@ async fn update_client(_req: Request) -> impl IntoResponse {
             return (StatusCode::BAD_REQUEST, Json(json!({"error": "CPF is required when changing to Pessoa Física."})));
         }
     } else if original_tipo_cliente == tipo_cliente {
-        // Type remains the same: Just update the specific type table
         if tipo_cliente == "fisica" {
             if let Some(c) = cpf {
                 if let Err(e) = transaction.execute("UPDATE Pessoa_Fisica SET cpf = $1 WHERE id_cliente = $2;", &[&c, &id]).await {
@@ -329,11 +321,7 @@ async fn update_client(_req: Request) -> impl IntoResponse {
             }
         }
     } else {
-        // Handle cases where original_tipo_cliente might be empty (e.g., client only in Cliente table initially)
-        // Or if new type is invalid (already caught by earlier validation)
-        // For now, if no type change or specific type provided, we assume no specific type update needed.
-        // If a client was created without CPF/CNPJ, and then one is added, this would need to insert.
-        // This scenario is not explicitly handled here, assuming clients are always one type or the other.
+        
         if tipo_cliente == "fisica" && original_tipo_cliente.is_empty() {
              if let Some(c) = cpf {
                 if let Err(e) = transaction.execute("INSERT INTO Pessoa_Fisica (id_cliente, cpf) VALUES ($1, $2);", &[&id, &c]).await {
@@ -406,7 +394,6 @@ async fn delete_client(_req: Request) -> impl IntoResponse {
         }
     };
 
-    // Primeiro, determine o tipo de cliente (Pessoa_Fisica ou Pessoa_Juridica)
     let client_type_query = "SELECT cpf, cnpj FROM Cliente c LEFT JOIN Pessoa_Fisica pf ON c.id_cliente = pf.id_cliente LEFT JOIN Pessoa_Juridica pj ON c.id_cliente = pj.id_cliente WHERE c.id_cliente = $1;";
     let client_rows = match transaction.query(client_type_query, &[&id]).await {
         Ok(rows) => rows,
@@ -427,7 +414,7 @@ async fn delete_client(_req: Request) -> impl IntoResponse {
     let cnpj: Option<String> = row.get("cnpj");
 
     if cpf.is_some() {
-        // É uma Pessoa Física
+        //Pessoa Física
         match transaction.execute("DELETE FROM pessoa_fisica WHERE id_cliente = $1;", &[&id]).await {
             Ok(_) => println!("Pessoa Física deleted successfully."),
             Err(e) => {
@@ -437,7 +424,7 @@ async fn delete_client(_req: Request) -> impl IntoResponse {
             }
         };
     } else if cnpj.is_some() {
-        // É uma Pessoa Jurídica
+        //Pessoa Jurídica
         match transaction.execute("DELETE FROM pessoa_juridica WHERE id_cliente = $1;", &[&id]).await {
             Ok(_) => println!("Pessoa Jurídica deleted successfully."),
             Err(e) => {
@@ -447,11 +434,10 @@ async fn delete_client(_req: Request) -> impl IntoResponse {
             }
         };
     } else {
-        // Cliente não é nem Pessoa Física nem Jurídica (pode ser um erro de dados ou um cliente que só existe na tabela Cliente)
         println!("Client is neither Pessoa Física nor Pessoa Jurídica. Proceeding to delete from Cliente table.");
     }
 
-    // Finalmente, delete da tabela Cliente
+    // Deletando Cliente a partir daqui
     let delete_client_query = "DELETE FROM Cliente WHERE id_cliente = $1;";
     match transaction.execute(delete_client_query, &[&id]).await { 
         Ok(rows_affected) => { 

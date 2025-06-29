@@ -10,9 +10,8 @@ struct Documento {
     id_documento: i32,
     id_caso: i32,
     descricao: String,
-    data_envio: Option<String>, // Pode ser nulo no DB
-    nome_arquivo: String, // O nome original do arquivo
-    // 'tipo' removido daqui
+    data_envio: Option<String>, 
+    nome_arquivo: String, 
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
