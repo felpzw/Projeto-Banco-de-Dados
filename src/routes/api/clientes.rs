@@ -1,7 +1,7 @@
 use tuono_lib::axum::response::{IntoResponse, Json};
-use tuono_lib::axum::http::{StatusCode};
+use tuono_lib::axum::http::StatusCode;
 use tuono_lib::Request;
-use tuono_app::{connect_db, extract_query_values};
+use tuono_app::{connect_db, extract_query_values}; // Re-importando para qualified calls
 
 use serde_json::{json, Value};
 use chrono::NaiveDate;  
@@ -9,34 +9,9 @@ use chrono::NaiveDate;
 #[tuono_lib::api(GET)]  
 async fn cliente(_req: Request) -> Json<Value> { 
     let query_string = _req.uri.query().unwrap_or(""); 
-    let query_values = match extract_query_values(query_string) { 
-        Ok(values) => values,
-        Err(e) => { 
-            return Json(json!({ 
-                "error": format!("Failed to extract query values: {}", e) 
-            }));
-        }
-    };
+    let query_values_result = tuono_app::extract_query_values(query_string); // Obtenha o resultado da análise da query
 
-    let id_str = match query_values.get("id") { 
-        Some(id) => id,
-        _ => { 
-            return Json(json!({ 
-                "error": "ID parameter is required." 
-            }));
-        }
-    };
-
-    let id = match id_str.parse::<i32>() { 
-        Ok(id) => id,
-        Err(_) => { 
-            return Json(json!({ 
-                "error": "ID parameter must be an integer." 
-            }));
-        }
-    };
-
-    let client_db = match connect_db().await { 
+    let client_db = match tuono_app::connect_db().await { 
         Ok(client) => client,
         Err(e) => { 
             eprintln!("Failed to connect to database: {}", e); 
@@ -46,51 +21,92 @@ async fn cliente(_req: Request) -> Json<Value> {
         }
     };
 
+    // Se houver um parâmetro 'id' na query string, buscar um cliente específico
+    if let Ok(query_values) = &query_values_result { // `query_values` é uma referência temporária a HashMap<String, String>
+        if let Some(id_str) = query_values.get("id") { // Verifica a presença de um ID específico
+            let id = match id_str.parse::<i32>() { 
+                Ok(id) => id,
+                Err(_) => { 
+                    return Json(json!({ 
+                        "error": "ID parameter must be an integer." 
+                    }));
+                }
+            };
+
+            let rows = match client_db
+                .query(
+                    "SELECT 
+                        c.id_cliente, c.nome, c.email, c.telefone, c.endereco, c.data_cadastro,
+                        pf.cpf,
+                        pj.cnpj
+                    FROM Cliente c
+                    LEFT JOIN Pessoa_Fisica pf ON c.id_cliente = pf.id_cliente
+                    LEFT JOIN Pessoa_Juridica pj ON c.id_cliente = pj.id_cliente
+                    WHERE c.id_cliente = $1;",
+                    &[&id], 
+                )
+                .await
+            {
+                Ok(rows) => rows,
+                Err(e) => { 
+                    eprintln!("Failed to execute query: {}", e); 
+                    return Json(json!({ 
+                        "error": format!("Failed to fetch client: {}", e) 
+                    }));
+                }
+            };
+
+            if rows.is_empty() { 
+                return Json(json!({ 
+                    "error": "Client not found." 
+                }));
+            }
+
+            let row = &rows[0]; 
+            return Json( // Retorna imediatamente para o cliente específico
+                json!({ 
+                    "id_cliente": row.get::<_, i32>("id_cliente"), 
+                    "nome": row.get::<_, String>("nome"), 
+                    "email": row.get::<_, Option<String>>("email").unwrap_or_else(|| "Nao identificado".to_string()), 
+                    "telefone": row.get::<_, Option<String>>("telefone").unwrap_or_else(|| "Nao identificado".to_string()), 
+                    "endereco": row.get::<_, Option<String>>("endereco").unwrap_or_else(|| "Nao identificado".to_string()), 
+                    "data_cadastro": row 
+                        .get::<_, Option<NaiveDate>>("data_cadastro") 
+                        .map(|d| d.to_string()) 
+                        .unwrap_or_else(|| "Nao identificado".to_string()), 
+                    "cpf": row.get::<_, Option<String>>("cpf"),
+                    "cnpj": row.get::<_, Option<String>>("cnpj"),
+                })
+            );
+        }
+    }
+
+    // Se NÃO houver um parâmetro 'id' (ou se houver um erro na extração mas a query_string não está vazia),
+    // ou se a query_string estiver vazia, retorna a lista completa de clientes para dropdowns
     let rows = match client_db
         .query(
-            "SELECT 
-                c.id_cliente, c.nome, c.email, c.telefone, c.endereco, c.data_cadastro,
-                pf.cpf,
-                pj.cnpj
-            FROM Cliente c
-            LEFT JOIN Pessoa_Fisica pf ON c.id_cliente = pf.id_cliente
-            LEFT JOIN Pessoa_Juridica pj ON c.id_cliente = pj.id_cliente
-            WHERE c.id_cliente = $1;",
-            &[&id], 
+            "SELECT id_cliente, nome FROM Cliente ORDER BY nome ASC;", 
+            &[], 
         )
         .await
     {
         Ok(rows) => rows,
         Err(e) => { 
-            eprintln!("Failed to execute query: {}", e); 
+            eprintln!("Failed to fetch all clients for lookup: {}", e); 
             return Json(json!({ 
-                "error": format!("Failed to fetch client: {}", e) 
+                "error": format!("Failed to fetch clients list: {}", e) 
             }));
         }
     };
 
-    if rows.is_empty() { 
-        return Json(json!({ 
-            "error": "Client not found." 
-        }));
-    }
-
-    let row = &rows[0]; 
-    Json(
-        json!({ 
-            "id_cliente": row.get::<_, i32>("id_cliente"), 
-            "nome": row.get::<_, String>("nome"), 
-            "email": row.get::<_, Option<String>>("email").unwrap_or_else(|| "Nao identificado".to_string()), 
-            "telefone": row.get::<_, Option<String>>("telefone").unwrap_or_else(|| "Nao identificado".to_string()), 
-            "endereco": row.get::<_, Option<String>>("endereco").unwrap_or_else(|| "Nao identificado".to_string()), 
-            "data_cadastro": row 
-                .get::<_, Option<NaiveDate>>("data_cadastro") 
-                .map(|d| d.to_string()) 
-                .unwrap_or_else(|| "Nao identificado".to_string()), 
-            "cpf": row.get::<_, Option<String>>("cpf"),
-            "cnpj": row.get::<_, Option<String>>("cnpj"),
+    let clients_list: Vec<Value> = rows.into_iter().map(|row| {
+        json!({
+            "id_cliente": row.get::<_, i32>("id_cliente"),
+            "nome": row.get::<_, String>("nome"),
         })
-    )
+    }).collect();
+
+    Json(json!(clients_list))
 }
 
 #[tuono_lib::api(POST)]
