@@ -25,7 +25,7 @@ Este projeto utiliza **Docker** para gerenciar o banco de dados PostgreSQL e a i
 
 1.  **Clone o Repositório:**
     ```bash
-    git clone [URL_DO_SEU_REPOSITORIO]
+    git clone https://github.com/felpzw/Projeto-Banco-de-Dados
     cd Projeto-Banco-de-Dados
     ```
 
