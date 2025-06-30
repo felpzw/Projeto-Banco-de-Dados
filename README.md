@@ -28,7 +28,12 @@ Este projeto utiliza **Docker** para gerenciar o banco de dados PostgreSQL e a i
     git clone https://github.com/felpzw/Projeto-Banco-de-Dados
     cd Projeto-Banco-de-Dados
     ```
-
+    
+2.  **Instalar Pacotes Node**
+    ```
+    npm install
+    ```
+    
 2.  **Configurar Variáveis de Ambiente:**
     Crie um arquivo chamado `var.env` na raiz do projeto (mesmo diretório do `Cargo.toml` e `docker-compose.yml`).
     Insira as seguintes linhas, ajustando conforme necessário (especialmente `OLLAMA_API_URL` se seu Ollama não for localhost):
