@@ -26,7 +26,7 @@ Este projeto utiliza **Docker** para gerenciar o banco de dados PostgreSQL e a i
 1.  **Clone o Repositório:**
     ```bash
     git clone [URL_DO_SEU_REPOSITORIO]
-    cd juridico-ia
+    cd Projeto-Banco-de-Dados
     ```
 
 2.  **Configurar Variáveis de Ambiente:**
