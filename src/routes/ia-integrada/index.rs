@@ -39,7 +39,8 @@ struct IaIntegratedPageProps {
 #[allow(unused_variables)]
 #[tuono_lib::handler]
 async fn get_ia_integrated_data(req: Request, fetch: reqwest::Client) -> Response {
-    let ollama_api_url = "https://ollama.vlab.ufsc.br/api/tags"; 
+    let ollama_env = std::env::var("OLLAMA_API_URL").expect("Fail to read OLLAMA_API_URL env");
+    let ollama_api_url: &str = &format!("{}api/tags", ollama_env); 
 
     let models_response = match fetch.get(ollama_api_url).send().await {
         Ok(res) => res,

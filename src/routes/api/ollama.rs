@@ -98,7 +98,8 @@ pub async fn ollama_post_generate(_req: Request, fetch: reqwest::Client) -> impl
         extracted_text, user_question
     );
 
-    let ollama_api_url = "https://ollama.vlab.ufsc.br/api/generate";
+    let ollama_env = std::env::var("OLLAMA_API_URL").expect("Fail to read OLLAMA_API_URL env");
+    let ollama_api_url: &str = &format!("{}api/generate", ollama_env);
 
     let ollama_request_body = json!({
         "model": ollama_model,

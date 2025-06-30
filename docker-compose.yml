@@ -5,13 +5,23 @@ services:
     image: postgres:16
     restart: always
     environment:
-      POSTGRES_DB: banco_de_dados # Nome do seu banco de dados
-      POSTGRES_USER: usuario # Usuário para o banco de dados
-      POSTGRES_PASSWORD: 1234 # Senha para o usuário
+      POSTGRES_DB: banco_de_dados
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: 1234
     ports:
-      - "5432:5432" # Mapeia a porta 5432 do container para a porta 5432 da sua máquina
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data # Volume para persistir os dados
+      - ./lib/db_data:/var/lib/postgresql/data
+
+  ollama:
+    image: ollama/ollama:0.1.34
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./lib/ollama_data:/var/lib/ollama/.ollama
 
 volumes:
   db_data:
+  ollama_data:

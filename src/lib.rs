@@ -5,7 +5,8 @@ use tuono_lib::tokio;
 use urlencoding;
 
 pub async fn connect_db() -> Result<Client, Error> {
-    let database_url = "host=localhost port=5432 user=usuario password=1234 dbname=banco_de_dados";
+    let database_string = std::env::var("DATABASE_URL").expect("Fail to read DATABASE_URL env");
+    let database_url: &str = &database_string;
     let (client, connection) = tokio_postgres::connect(database_url, tokio_postgres::NoTls).await?;
 
     tokio::spawn(async move {

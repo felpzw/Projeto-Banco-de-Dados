@@ -2,8 +2,8 @@
 use serde::{Deserialize, Serialize};
 use tuono_lib::{Props, Request, Response};
 use tuono_lib::axum::http;
-use tuono_app::{connect_db}; // Certifique-se de que estes imports estão corretos
-use chrono::NaiveDate; // Import NaiveDate for handling DATE type from PostgreSQL
+use tuono_app::{connect_db}; 
+use chrono::NaiveDate; 
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Clientes {
@@ -16,13 +16,13 @@ struct Cliente {
     nome: String,
     email: String,
     telefone: String,
-    data_cadastro: String, // Será convertida de chrono::NaiveDate
+    data_cadastro: String, //chrono::NaiveDate
     endereco: String,
-    cpf: Option<String>, // Agora opcional
-    cnpj: Option<String>, // Agora opcional
+    cpf: Option<String>, 
+    cnpj: Option<String>, 
 }
 
-#[allow(unused_variables)] // Keep if req is not used directly for query params here
+#[allow(unused_variables)] 
 #[tuono_lib::handler]
 async fn get_clientes(req: Request) -> Response {
     let client_db = match connect_db().await {
@@ -33,8 +33,6 @@ async fn get_clientes(req: Request) -> Response {
         }
     };
 
-    // Atualizada a query SQL para incluir 'email', 'endereco', e juntar com Pessoa_Fisica e Pessoa_Juridica
-    // para buscar CPF ou CNPJ.
     let rows = match client_db
         .query(
             "SELECT 
