@@ -52,7 +52,7 @@ export default function ConfiguracoesPage(): JSX.Element {
         {/* Botão DELETE */}
         <button
           className="submit-button delete-button"
-          onClick={() => handleDbOperation('DELETE', '/api/clean', 'LIMPAR DB (DEBUG)')}
+          onClick={() => handleDbOperation('DELETE', '/api/init_clean', 'LIMPAR DB (DEBUG)')}
           disabled={isLoading === 'LIMPAR DB (DEBUG)'}
         >
           {isLoading === 'LIMPAR DB (DEBUG)' ? 'Limpando...' : 'LIMPAR DB (DEBUG)'}
@@ -61,7 +61,7 @@ export default function ConfiguracoesPage(): JSX.Element {
         {/* Botão POST */}
         <button
           className="submit-button"
-          onClick={() => handleDbOperation('POST', '/api/init', 'INICIAR DB (DEBUG)')}
+          onClick={() => handleDbOperation('POST', '/api/init_clean', 'INICIAR DB (DEBUG)')}
           disabled={isLoading === 'INICIAR DB (DEBUG)'}
         >
           {isLoading === 'INICIAR DB (DEBUG)' ? 'Iniciando...' : 'INICIAR DB (DEBUG)'}
@@ -70,7 +70,7 @@ export default function ConfiguracoesPage(): JSX.Element {
         {/* Botão PUT */}
         <button
           className="submit-button edit-button" // Usando estilo 'edit-button' para cor amarela
-          onClick={() => handleDbOperation('PUT', '/api/populate_db', 'POPULAR DB (DEBUG)')}
+          onClick={() => handleDbOperation('PUT', '/api/init_clean', 'POPULAR DB (DEBUG)')}
           disabled={isLoading === 'POPULAR DB (DEBUG)'}
         >
           {isLoading === 'POPULAR DB (DEBUG)' ? 'Populando...' : 'POPULAR DB (DEBUG)'}

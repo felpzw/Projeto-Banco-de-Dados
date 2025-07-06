@@ -17,7 +17,7 @@ export default function RootLayout({ children }: TuonoLayoutProps): JSX.Element 
     <html lang="pt">
       <body className="dashboard-body">
         <aside className="sidebar">
-          <h1 className="sidebar-title">📚 Jurídico IA</h1>
+          <h1 className="sidebar-title">📚 Dashbord</h1>
           <nav className="sidebar-nav">
             <Link href="/casos" className="sidebar-link" onClick={(e) => handleLinkClick(e, '/casos')}>
               📁 Casos Jurídicos
